@@ -4,6 +4,7 @@ import { IOBuffer } from 'iobuffer';
  * Reads the data at a certain offset in the file.
  * It will process the data when I figure it out
  *
+ * @export
  * @param {IOBuffer} buffer
  * @param {number} offset
  * @param {number} length
@@ -29,6 +30,7 @@ export function readPixels(buffer, offset, length, bytesPerPixel) {
     default:
       throw new Error('Unsupported bytes per pixel resolution');
   }
+  // Read buffer to fill pixels array
   for (let i = 0; i < iterations; i++) {
     pixels[i] = buffer[func]();
   }
@@ -36,23 +38,44 @@ export function readPixels(buffer, offset, length, bytesPerPixel) {
 }
 
 /**
- * Reads the image height as a two-dimensional array
+ * Converts raw height data to actual height values
  *
- * @param {IOBuffer} buffer
- * @return {*}
+ * @export
+ * @param {Array<number>} data
+ * @param {object} header
+ * @param {Array<object>} imageList
+ * @return {number}
  */
-function readHeight(buffer) {
-  buffer.offset = 0x8192;
-}
+export function dataHeight(data, header, imageList) {
+  const zScale = /[^[]*\[(?<softScale>[^\]]*)\] \((?<hardScale>[0-9.]*).*/;
+  let hardScale = 1;
+  let softScale = 1;
 
-/**
- * Reads a series of force curves that correspond to the force volume image
- *
- * @param {IOBuffer} buffer
- * @return {*}
- */
-function readForceVolume(buffer) {
-  return 1;
+  // Scanner list contains soft scale so it needs to be defined
+  if (header['Scanner list'] !== undefined) {
+    // Look for images with type Height
+    for (const image of imageList) {
+      if (
+        image['Image Data'] !== undefined &&
+        image['Image Data'].match('Height') &&
+        image['Z scale'] !== undefined
+      ) {
+        // Scale attributes also contain units so regex is needed
+        const zScaleExec = zScale.exec(image['Z scale']);
+        softScale = parseFloat(
+          /[^0-9]*(?<scale>[0-9.]).*/.exec(
+            header['Scanner list'][zScaleExec.groups.softScale],
+          )[1],
+        );
+        hardScale = parseFloat(zScaleExec.groups.hardScale);
+      }
+    }
+  } else {
+    throw new Error('Bad header, missing scale data');
+  }
+  // Height = hardValue * softScale, hardValue = raw value * hardScale
+  data.map((value) => {
+    return value * hardScale * softScale;
+  });
+  return data;
 }
-
-export function readImage(buffer) {}

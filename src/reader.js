@@ -12,16 +12,13 @@ import { readPixels } from './image';
  */
 export function readFile(buffer) {
   const object = {};
-  object.header = readHeader(buffer);
-  object.images = [];
-  for (const image of object.header['Image list']) {
-    object.images.push(
-      readPixels(
-        buffer,
-        image['Data offset'],
-        image['Data length'],
-        image['Bytes/pixel'],
-      ),
+  [object.header, object.images] = readHeader(buffer);
+  for (const image of object.images) {
+    image.data = readPixels(
+      buffer,
+      image['Data offset'],
+      image['Data length'],
+      image['Bytes/pixel'],
     );
   }
   return object;
