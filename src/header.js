@@ -7,7 +7,7 @@ import { readLine } from './utils/readLine';
  *
  * @export
  * @param {IOBuffer} buffer
- * @return {Array<object,Array<object>>}
+ * @return {Array<object, Array<object>>}
  */
 // Format Version >0x43XXXXX
 // Voir les data offset, length et bytes/pixel dans les ciao

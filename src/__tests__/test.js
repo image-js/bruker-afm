@@ -1,20 +1,20 @@
-import { readFileSync, writeFileSync } from 'fs';
+import fs from 'fs';
 import { join } from 'path';
 
 import { IOBuffer } from 'iobuffer';
 
-import { readHeader } from '../header';
+import { readFile } from '../reader';
 
 const testFiles = './data';
 describe('parse afm', () => {
-  it('should return 42', () => {
+  it('write to file', () => {
     const arrayBuffer = new IOBuffer(
-      readFileSync(join(__dirname, `${testFiles}/raw data.001`)),
+      fs.readFileSync(join(__dirname, `${testFiles}/raw data.001`)),
     );
-    const header = readHeader(arrayBuffer);
-    writeFileSync(
-      join(__dirname, `${testFiles}/header.json`),
-      JSON.stringify(header),
+    const read = readFile(arrayBuffer);
+    fs.writeFileSync(
+      join(__dirname, `${testFiles}/out.json`),
+      JSON.stringify(read),
       {
         encoding: 'utf8',
         flag: 'w',

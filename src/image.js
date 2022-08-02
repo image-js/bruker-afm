@@ -9,30 +9,30 @@ import { IOBuffer } from 'iobuffer';
  * @param {number} offset
  * @param {number} length
  * @param {number} bytesPerPixel
- * @return {ArrayBuffer}
+ * @return {Number[]}
  */
 
 export function readPixels(buffer, offset, length, bytesPerPixel) {
   buffer.offset = offset;
   const iterations = (length / bytesPerPixel).toFixed(0);
-  const pixels = new ArrayBuffer(iterations);
-  let func;
+  const pixels = [];
+  let read;
   switch (bytesPerPixel) {
     case 1:
-      func = 'ReadChar';
+      read = () => buffer.readChar();
       break;
     case 2:
-      func = 'ReadUint16';
+      read = () => buffer.readUint16();
       break;
     case 4:
-      func = 'ReadUint32';
+      read = () => buffer.readUint32();
       break;
     default:
       throw new Error('Unsupported bytes per pixel resolution');
   }
   // Read buffer to fill pixels array
   for (let i = 0; i < iterations; i++) {
-    pixels[i] = buffer[func]();
+    pixels[i] = read();
   }
   return pixels;
 }
@@ -41,41 +41,36 @@ export function readPixels(buffer, offset, length, bytesPerPixel) {
  * Converts raw height data to actual height values
  *
  * @export
- * @param {Array<number>} data
  * @param {object} header
- * @param {Array<object>} imageList
+ * @param {object} image
  * @return {number}
  */
-export function dataHeight(data, header, imageList) {
+export function dataRescale(header, image) {
   const zScale = /[^[]*\[(?<softScale>[^\]]*)\] \((?<hardScale>[0-9.]*).*/;
   let hardScale = 1;
   let softScale = 1;
 
   // Scanner list contains soft scale so it needs to be defined
   if (header['Scanner list'] !== undefined) {
-    // Look for images with type Height
-    for (const image of imageList) {
-      if (
-        image['Image Data'] !== undefined &&
-        image['Image Data'].match('Height') &&
-        image['Z scale'] !== undefined
-      ) {
-        // Scale attributes also contain units so regex is needed
-        const zScaleExec = zScale.exec(image['Z scale']);
-        softScale = parseFloat(
-          /[^0-9]*(?<scale>[0-9.]).*/.exec(
-            header['Scanner list'][zScaleExec.groups.softScale],
-          )[1],
-        );
-        hardScale = parseFloat(zScaleExec.groups.hardScale);
-      }
+    if (image['Z scale'] !== undefined) {
+      // Scale attributes also contain units so regex is needed
+      const zScaleExec = zScale.exec(image['Z scale']);
+      softScale = parseFloat(
+        /[^0-9]*(?<scale>[0-9.]*).*/.exec(
+          header['Scanner list'][zScaleExec.groups.softScale],
+        )[1],
+      );
+      hardScale = parseFloat(zScaleExec.groups.hardScale);
     }
+    // ActualData = hardValue * softScale, hardValue = raw value * hardScale
+    image.data.map(
+      (value) => {
+        return value * hardScale * softScale;
+      },
+      { hardScale, softScale },
+    );
   } else {
     throw new Error('Bad header, missing scale data');
   }
-  // Height = hardValue * softScale, hardValue = raw value * hardScale
-  data.map((value) => {
-    return value * hardScale * softScale;
-  });
-  return data;
+  return image;
 }

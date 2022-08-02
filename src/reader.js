@@ -1,7 +1,7 @@
 import { IOBuffer } from 'iobuffer';
 
 import { readHeader } from './header';
-import { readPixels } from './image';
+import { dataRescale, readPixels } from './image';
 
 /**
  * Reads a bukler afm image and returns an object
@@ -20,6 +20,7 @@ export function readFile(buffer) {
       image['Data length'],
       image['Bytes/pixel'],
     );
+    dataRescale(object.header, image);
   }
   return object;
 }
