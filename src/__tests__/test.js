@@ -15,7 +15,7 @@ describe('parse afm', () => {
     );
     const read = readFile(arrayBuffer);
     const image = createImage(read);
-    /* //uncomment to save files locally
+     //uncomment to save files locally
     image.save('test.png');
     fs.writeFileSync(
       join(__dirname, `${testFiles}/out.json`),
@@ -24,6 +24,6 @@ describe('parse afm', () => {
         encoding: 'utf8',
         flag: 'w',
       },
-    );*/
+    );
   });
 });

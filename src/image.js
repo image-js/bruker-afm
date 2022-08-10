@@ -63,12 +63,10 @@ export function dataRescale(header, image) {
       hardScale = parseFloat(zScaleExec.groups.hardScale);
     }
     // ActualData = hardValue * softScale, hardValue = raw value * hardScale
-    image.data.map(
-      (value) => {
-        return value * hardScale * softScale;
-      },
-      { hardScale, softScale },
-    );
+    const scale = hardScale * softScale;
+    for (let i = 0; i < image.data.length; i++) {
+      image.data[i] = image.data[i] * scale;
+    }
   } else {
     throw new Error('Bad header, missing scale data');
   }
@@ -87,7 +85,7 @@ export function createImage(data) {
   const width = parseInt(dataImage['Samps/line'], 10);
   const height = parseInt(dataImage['Number of lines'], 10);
   const image = new imageJs.Image(width, height, dataImage.data, {
-    bitDepth: 16,
+    bitDepth: parseInt(dataImage["Bytes/pixel"] * 8),
     components: 1,
     alpha: 0,
   });
