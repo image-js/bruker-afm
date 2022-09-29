@@ -20,6 +20,20 @@ const result = library(args);
 // result is ...
 ```
 
+## Findings
+
+I found multiple sources of knowledge about this file format, but not enough to use the data that we have.
+
+[ForceVolume AFM Format](https://www.nanophys.kth.se/nanolab/afm/icon/bruker-help/Content/ForceVolume/ForceVolImgFileFormat.htm) Gives some information about the header for version 0x41XXXXXX
+
+[Nanoscope repository](https://github.com/jmarini/nanoscope) Python implementation for versions 0x05120130 and 0x09300201 only
+
+[pySPM repository](https://github.com/scholi/pySPM) Python implementation of multiple file format parsers, needed some tinkering to work with our data and still didn't provide acceptable results
+
+[afmr repository](https://github.com/will-r-chase/afmr/) R implementation for AFM maps, didn't look too much into it because it didn't seem relevant
+
+[Prof. Srin Manne's AFM lab](http://www.physics.arizona.edu/~smanne/DI/software/v43header.html) Provides informations as to how the data should be parsed, the most useful source so far
+
 ## [API Documentation](https://image-js.github.io/bruker-afm/)
 
 ## License
